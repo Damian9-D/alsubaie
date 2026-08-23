@@ -575,7 +575,7 @@ body.device-mobile .branches-heading{
   font-size:11px;
   font-weight:900;
   opacity:.9;
-">الإصدار 1.0.6</div>
+">الإصدار 1.0.7</div>
 
   <form class="login-box" id="loginForm" autocomplete="off">
     <div class="login-brand">
@@ -628,7 +628,7 @@ padding:8px 13px;
 font-size:12px;
 font-weight:900;
 box-shadow:0 6px 18px rgba(0,0,0,.16);
-">الإصدار 1.0.6</div>
+">الإصدار 1.0.7</div>
 <div class="toolbar no-print">
   <div class="switch">
     <button class="btn btn-tab active" id="fullTab">الشجرة الكاملة</button>
@@ -637,8 +637,8 @@ box-shadow:0 6px 18px rgba(0,0,0,.16);
   <div class="sep"></div>
   <button class="btn btn-dark" id="jpgBtn">صورة عالية الدقة (JPG)</button>
   <button class="btn btn-red" id="printPdfBtn">تصدير PDF (عبر الطباعة)</button>
-  <div class="branch-actions" style="display:none">
-    <button class="btn btn-dark" id="branchesPngBtn">تصدير الفروع (صور)</button>
+  <div class="branch-actions" style="display:none;align-items:center;gap:6px">
+    
     <button class="btn btn-indigo" id="branchesPdfBtn">تصدير الفروع (PDF)</button>
   </div>
   <div class="sep"></div>
@@ -948,40 +948,121 @@ document.getElementById("jpgBtn").onclick=async()=>{
 };
 document.getElementById("printPdfBtn").onclick=()=>window.print();
 
-document.getElementById("branchesPngBtn").onclick=async()=>{
-  if(!window.html2canvas){alert("تعذر تحميل مكتبة التصدير. تأكد من اتصال الإنترنت.");return}
-  const pages=[...document.querySelectorAll(".branch-page")];startOverlay(`جاري معالجة الصفحة 1 من ${pages.length}...`);
-  try{
-    await document.fonts.ready;
-    for(let i=0;i<pages.length;i++){
-      overlayText.textContent=`جاري معالجة الصفحة ${i+1} من ${pages.length}...`;
-      progressBar.style.width=`${((i+1)/pages.length)*100}%`;
-      const canvas=await html2canvas(pages[i],{backgroundColor:"#fdfcf8",scale:1.1,useCORS:true});
-      const a=document.createElement("a");a.href=canvas.toDataURL("image/png");a.download=`${pages[i].querySelector("h3").textContent.replace(/\s+/g,"_")}.png`;document.body.appendChild(a);a.click();a.remove();
-      await new Promise(r=>setTimeout(r,700));
-    }
-    spinner.style.display="none";overlayText.textContent="اكتمل تصدير صور الفروع. إذا منع المتصفح بعض التنزيلات، اسمح بالتنزيلات المتعددة.";closeOverlay.style.display="inline-block";
-  }catch(e){console.error(e);failOverlay("حدث خطأ أثناء تصدير صور الفروع.");}
-};
+
 document.getElementById("branchesPdfBtn").onclick=async()=>{
-  if(!window.html2canvas || !window.jspdf){alert("تعذر تحميل مكتبات التصدير. تأكد من اتصال الإنترنت.");return}
-  const pages=[...document.querySelectorAll(".branch-page")];startOverlay(`جاري معالجة الصفحة 1 من ${pages.length}...`);
+  if(!window.html2canvas || !window.jspdf){
+    alert("تعذر تحميل مكتبات التصدير. تأكد من اتصال الإنترنت.");
+    return;
+  }
+
+  const pages=[...document.querySelectorAll("#branchesView .branch-page")];
+  if(!pages.length){
+    alert("لا توجد صفحات فروع للتصدير.");
+    return;
+  }
+
+  startOverlay(`جاري معالجة الصفحة 1 من ${pages.length}...`);
+
+  /* حفظ تنسيقات العرض الحالية ثم تعطيل أي scale/transform خاص بالجوال أثناء التصدير */
+  const savedStyles = pages.map(page => ({
+    transform: page.style.transform,
+    transformOrigin: page.style.transformOrigin,
+    margin: page.style.margin,
+    marginBottom: page.style.marginBottom,
+    width: page.style.width,
+    height: page.style.height
+  }));
+
   try{
     await document.fonts.ready;
+
     const {jsPDF}=window.jspdf;
-    const pdf=new jsPDF({orientation:"landscape",unit:"mm",format:"a4",compress:true});
+    const pdf=new jsPDF({
+      orientation:"landscape",
+      unit:"mm",
+      format:"a4",
+      compress:true
+    });
+
     for(let i=0;i<pages.length;i++){
+      const page=pages[i];
+
       overlayText.textContent=`جاري معالجة الصفحة ${i+1} من ${pages.length}...`;
       progressBar.style.width=`${((i+1)/pages.length)*100}%`;
-      const canvas=await html2canvas(pages[i],{backgroundColor:"#fdfcf8",scale:1,useCORS:true});
-      const img=canvas.toDataURL("image/jpeg",.82);
-      if(i>0) pdf.addPage("a4","landscape");
-      pdf.addImage(img,"JPEG",0,0,pdf.internal.pageSize.getWidth(),pdf.internal.pageSize.getHeight(),undefined,"FAST");
-      await new Promise(r=>setTimeout(r,200));
+
+      /* تصدير الصفحة بالحجم الطبيعي A4 بدون أي تصغير خاص بعرض الجوال */
+      page.style.transform="none";
+      page.style.transformOrigin="top left";
+      page.style.margin="0";
+      page.style.marginBottom="0";
+
+      await new Promise(r=>setTimeout(r,120));
+
+      const canvas=await html2canvas(page,{
+        backgroundColor:"#fffdf8",
+        scale:2,
+        useCORS:true,
+        logging:false,
+        scrollX:0,
+        scrollY:0,
+        width:page.scrollWidth,
+        height:page.scrollHeight,
+        windowWidth:page.scrollWidth,
+        windowHeight:page.scrollHeight
+      });
+
+      const imgData=canvas.toDataURL("image/jpeg",0.92);
+
+      if(i>0){
+        pdf.addPage("a4","landscape");
+      }
+
+      const pdfW=pdf.internal.pageSize.getWidth();
+      const pdfH=pdf.internal.pageSize.getHeight();
+
+      /* احتواء الصورة داخل صفحة A4 مع الحفاظ على النسبة ومنع التداخل */
+      const imgRatio=canvas.width/canvas.height;
+      const pageRatio=pdfW/pdfH;
+
+      let drawW, drawH, x, y;
+      if(imgRatio>pageRatio){
+        drawW=pdfW;
+        drawH=pdfW/imgRatio;
+        x=0;
+        y=(pdfH-drawH)/2;
+      }else{
+        drawH=pdfH;
+        drawW=pdfH*imgRatio;
+        y=0;
+        x=(pdfW-drawW)/2;
+      }
+
+      pdf.addImage(imgData,"JPEG",x,y,drawW,drawH,undefined,"FAST");
     }
-    const blob=pdf.output("blob"), url=URL.createObjectURL(blob);
-    finishOverlay(url,`Al_Hammoud_Branches_Doc_${Date.now()}.pdf`);
-  }catch(e){console.error(e);failOverlay("حدث خطأ أثناء تصدير PDF للفروع.");}
+
+    const blob=pdf.output("blob");
+    const url=URL.createObjectURL(blob);
+    finishOverlay(url,`Al_Hammoud_Branches_A4_${Date.now()}.pdf`);
+
+  }catch(e){
+    console.error("Branches PDF Export Error:",e);
+    failOverlay("حدث خطأ أثناء تصدير PDF للفروع.");
+  }finally{
+    /* إعادة تنسيق العرض كما كان بعد انتهاء التصدير */
+    pages.forEach((page,i)=>{
+      const st=savedStyles[i];
+      page.style.transform=st.transform;
+      page.style.transformOrigin=st.transformOrigin;
+      page.style.margin=st.margin;
+      page.style.marginBottom=st.marginBottom;
+      page.style.width=st.width;
+      page.style.height=st.height;
+    });
+
+    if(typeof fitBranchPagesForMobile==="function"){
+      setTimeout(fitBranchPagesForMobile,100);
+    }
+  }
 };
 
 let treeZoom=.70;
