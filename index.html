@@ -609,6 +609,56 @@ body.device-mobile #branchesView .branch-page{
   transform:none!important;
 }
 
+
+/* ===== تعديلات واجهة الإصدار 1.1.2 ===== */
+.zoom-label,
+#zoomFit{
+  display:none!important;
+}
+
+/* الجوال: شريط الأدوات أسفل الشاشة حتى لا يغطي المحتوى */
+body.device-mobile .toolbar{
+  top:auto!important;
+  bottom:8px!important;
+  left:8px!important;
+  right:8px!important;
+  transform:none!important;
+  width:auto!important;
+  max-width:none!important;
+  max-height:112px!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  z-index:250!important;
+  border-radius:16px!important;
+}
+
+body.device-mobile #fullView{
+  padding-top:8px!important;
+  padding-bottom:126px!important;
+}
+
+body.device-mobile #fullWrap{
+  height:calc(100vh - 134px)!important;
+}
+
+body.device-mobile #branchesView.active{
+  margin-top:8px!important;
+  padding-top:6px!important;
+  padding-bottom:132px!important;
+}
+
+/* إبقاء أزرار التكبير فقط في صف صغير على الجوال */
+body.device-mobile .zoom-controls{
+  display:flex!important;
+  width:auto!important;
+  order:3;
+}
+body.device-mobile .zoom-controls .zoom-btn{
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+}
+
 </style>
 </head>
 <body>
@@ -624,7 +674,7 @@ body.device-mobile #branchesView .branch-page{
   font-size:11px;
   font-weight:900;
   opacity:.9;
-">الإصدار 1.1.0</div>
+">الإصدار 1.1.2</div>
 
   <form class="login-box" id="loginForm" autocomplete="off">
     <div class="login-brand">
@@ -677,11 +727,11 @@ padding:8px 13px;
 font-size:12px;
 font-weight:900;
 box-shadow:0 6px 18px rgba(0,0,0,.16);
-">الإصدار 1.1.0</div>
+">الإصدار 1.1.2</div>
 <div class="toolbar no-print">
   <div class="switch">
     <button class="btn btn-tab active" id="fullTab">الشجرة الكاملة</button>
-    <button class="btn btn-tab" id="branchTab">عرض الفروع (A4)</button>
+    <button class="btn btn-tab" id="branchTab">عرض الفروع</button>
   </div>
   <div class="sep"></div>
   <button class="btn btn-dark" id="jpgBtn">صورة عالية الدقة (JPG)</button>
@@ -953,12 +1003,12 @@ function branchPage(father){
       <div class="desc-grid" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">${desc}</div>
     </div>
     <div class="branch-foot">
-      <div><div class="doc">وثيقة نسب معتمدة - الإصدار الرابع (A4)</div></div>
+      <div><div class="doc">وثيقة نسب معتمدة - الإصدار الرابع</div></div>
       <div class="foot-meta"><div><small>تاريخ الإصدار</small><strong>${saDate()}</strong></div><div class="vline"></div><div><small>رقم الصفحة</small><strong>فرع ${esc(father.name)}</strong></div></div>
     </div>
   </section>`;
 }
-document.getElementById("branchesView").innerHTML = `<div class="branches-heading"><h2>مستند الفروع والأحفاد</h2><p>كل صفحة مخصصة لأب مع أبنائه وأحفاده، مصممة للطباعة بمقاس A4.</p></div>` + fathers.map(branchPage).join("");
+document.getElementById("branchesView").innerHTML = `<div class="branches-heading"><h2>مستند الفروع والأحفاد</h2><p>كل صفحة مخصصة لأب مع أبنائه وأحفاده.</p></div>` + fathers.map(branchPage).join("");
 
 const fullTab=document.getElementById("fullTab"), branchTab=document.getElementById("branchTab");
 const fullView=document.getElementById("fullView"), branchesView=document.getElementById("branchesView");
