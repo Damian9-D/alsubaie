@@ -610,7 +610,7 @@ body.device-mobile #branchesView .branch-page{
 }
 
 
-/* ===== تعديلات واجهة الإصدار 1.1.9 ===== */
+/* ===== تعديلات واجهة الإصدار 1.2.0 ===== */
 .zoom-label,
 #zoomFit{
   display:none!important;
@@ -660,7 +660,7 @@ body.device-mobile .zoom-controls .zoom-btn{
 }
 
 
-/* ===== تعديلات الإصدار 1.1.9 ===== */
+/* ===== تعديلات الإصدار 1.2.0 ===== */
 .btn-gold{
   background:linear-gradient(135deg,#b8862e,#d8ad53)!important;
   color:#17120a!important;
@@ -804,6 +804,15 @@ body.device-mobile #fullWrap{
   user-select:none!important;
 }
 
+
+/* التحكم باللمس والسحب داخل الشجرة */
+#fullWrap{
+  touch-action:none!important;
+  overscroll-behavior:contain!important;
+  cursor:grab;
+}
+#fullWrap.is-panning{cursor:grabbing}
+
 </style>
 </head>
 <body>
@@ -819,7 +828,7 @@ body.device-mobile #fullWrap{
   font-size:11px;
   font-weight:900;
   opacity:.9;
-">الإصدار 1.1.9</div>
+">الإصدار 1.2.0</div>
 
   <form class="login-box" id="loginForm" autocomplete="off">
     <div class="login-brand">
@@ -1334,10 +1343,16 @@ function applyZoom(){
   pc.style.transform=`scale(${treeZoom})`;
   pc.style.transformOrigin="top left";
 
-  zoomLabel.textContent=Math.round(treeZoom*100)+"%";
+  if(zoomLabel) zoomLabel.textContent=Math.round(treeZoom*100)+"%";
 }
-document.getElementById("zoomOut").onclick=()=>{treeZoom=Math.max(.25,treeZoom-.1);applyZoom()};
-document.getElementById("zoomIn").onclick=()=>{treeZoom=Math.min(1.4,treeZoom+.1);applyZoom()};
+document.getElementById("zoomOut").onclick=()=>{
+  const r=wrap.getBoundingClientRect();
+  zoomTreeAt(r.left+r.width/2,r.top+r.height/2,Math.max(.25,treeZoom-.1));
+};
+document.getElementById("zoomIn").onclick=()=>{
+  const r=wrap.getBoundingClientRect();
+  zoomTreeAt(r.left+r.width/2,r.top+r.height/2,Math.min(1.6,treeZoom+.1));
+};
 document.getElementById("zoomFit").onclick=()=>{
   const pc=document.getElementById("printContainer");
   const available=Math.max(300,wrap.clientWidth-36);
@@ -1642,6 +1657,145 @@ if(branchTabFix){
       },80);
     });
   }
+})();
+
+
+
+/* ===== تحكم الشجرة 1.2.0: سحب + تكبير حقيقي ===== */
+function zoomTreeAt(clientX,clientY,newZoom){
+  const wrap=document.getElementById("fullWrap");
+  if(!wrap) return;
+
+  const oldZoom=treeZoom;
+  newZoom=Math.max(.25,Math.min(1.6,newZoom));
+  if(Math.abs(newZoom-oldZoom)<.001) return;
+
+  const rect=wrap.getBoundingClientRect();
+  const vx=clientX-rect.left;
+  const vy=clientY-rect.top;
+
+  const contentX=(wrap.scrollLeft+vx)/oldZoom;
+  const contentY=(wrap.scrollTop+vy)/oldZoom;
+
+  treeZoom=newZoom;
+  applyZoom();
+
+  wrap.scrollLeft=Math.max(0,(contentX*newZoom)-vx);
+  wrap.scrollTop=Math.max(0,(contentY*newZoom)-vy);
+}
+
+(function(){
+  const wrap=document.getElementById("fullWrap");
+  if(!wrap) return;
+
+  /* منع تركيب أكثر من نظام تحكم */
+  if(wrap.dataset.gesture120==="1") return;
+  wrap.dataset.gesture120="1";
+
+  const points=new Map();
+  let pan=null;
+  let pinch=null;
+
+  function beginPan(p){
+    pan={
+      x:p.x,y:p.y,
+      left:wrap.scrollLeft,
+      top:wrap.scrollTop
+    };
+    pinch=null;
+  }
+
+  function beginPinch(){
+    const a=[...points.values()];
+    if(a.length<2) return;
+    const p1=a[0],p2=a[1];
+    const rect=wrap.getBoundingClientRect();
+    const cx=(p1.x+p2.x)/2;
+    const cy=(p1.y+p2.y)/2;
+    const vx=cx-rect.left;
+    const vy=cy-rect.top;
+
+    pinch={
+      distance:Math.max(1,Math.hypot(p2.x-p1.x,p2.y-p1.y)),
+      zoom:treeZoom,
+      contentX:(wrap.scrollLeft+vx)/treeZoom,
+      contentY:(wrap.scrollTop+vy)/treeZoom
+    };
+    pan=null;
+  }
+
+  wrap.addEventListener("pointerdown",function(e){
+    if(e.pointerType==="mouse" && e.button!==0) return;
+    if(e.target.closest("button,a,input,select,textarea")) return;
+
+    points.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    try{wrap.setPointerCapture(e.pointerId)}catch(_){}
+
+    if(points.size===1) beginPan({x:e.clientX,y:e.clientY});
+    if(points.size===2) beginPinch();
+
+    wrap.classList.add("is-panning");
+    e.preventDefault();
+  },{passive:false});
+
+  wrap.addEventListener("pointermove",function(e){
+    if(!points.has(e.pointerId)) return;
+    points.set(e.pointerId,{x:e.clientX,y:e.clientY});
+
+    if(points.size>=2 && pinch){
+      const a=[...points.values()];
+      const p1=a[0],p2=a[1];
+      const distance=Math.max(1,Math.hypot(p2.x-p1.x,p2.y-p1.y));
+      const cx=(p1.x+p2.x)/2;
+      const cy=(p1.y+p2.y)/2;
+      const rect=wrap.getBoundingClientRect();
+      const vx=cx-rect.left;
+      const vy=cy-rect.top;
+      const z=Math.max(.25,Math.min(1.6,pinch.zoom*(distance/pinch.distance)));
+
+      treeZoom=z;
+      applyZoom();
+
+      wrap.scrollLeft=Math.max(0,(pinch.contentX*z)-vx);
+      wrap.scrollTop=Math.max(0,(pinch.contentY*z)-vy);
+      e.preventDefault();
+      return;
+    }
+
+    if(points.size===1 && pan){
+      const p=[...points.values()][0];
+      wrap.scrollLeft=pan.left-(p.x-pan.x);
+      wrap.scrollTop=pan.top-(p.y-pan.y);
+      e.preventDefault();
+    }
+  },{passive:false});
+
+  function finish(e){
+    if(!points.has(e.pointerId)) return;
+    points.delete(e.pointerId);
+    try{wrap.releasePointerCapture(e.pointerId)}catch(_){}
+
+    if(points.size===1){
+      const p=[...points.values()][0];
+      beginPan(p);
+    }else if(points.size===0){
+      pan=null;
+      pinch=null;
+      wrap.classList.remove("is-panning");
+    }else{
+      beginPinch();
+    }
+  }
+
+  wrap.addEventListener("pointerup",finish);
+  wrap.addEventListener("pointercancel",finish);
+
+  /* عجلة الماوس تكبّر حول موضع المؤشر */
+  wrap.addEventListener("wheel",function(e){
+    if(document.body.classList.contains("device-mobile")) return;
+    e.preventDefault();
+    zoomTreeAt(e.clientX,e.clientY,treeZoom*(e.deltaY<0?1.10:.90));
+  },{passive:false});
 })();
 
 </script>
