@@ -610,7 +610,7 @@ body.device-mobile #branchesView .branch-page{
 }
 
 
-/* ===== تعديلات واجهة الإصدار 1.2.0 ===== */
+/* ===== تعديلات واجهة الإصدار 1.2.1 ===== */
 .zoom-label,
 #zoomFit{
   display:none!important;
@@ -660,7 +660,7 @@ body.device-mobile .zoom-controls .zoom-btn{
 }
 
 
-/* ===== تعديلات الإصدار 1.2.0 ===== */
+/* ===== تعديلات الإصدار 1.2.1 ===== */
 .btn-gold{
   background:linear-gradient(135deg,#b8862e,#d8ad53)!important;
   color:#17120a!important;
@@ -828,7 +828,7 @@ body.device-mobile #fullWrap{
   font-size:11px;
   font-weight:900;
   opacity:.9;
-">الإصدار 1.2.0</div>
+">الإصدار 1.2.1</div>
 
   <form class="login-box" id="loginForm" autocomplete="off">
     <div class="login-brand">
@@ -1411,8 +1411,10 @@ if(mobileTreeList){
 
 
 (() => {
-  const LOGIN_ID = "1088380546";
-  const LOGIN_PASSWORD = "3533";
+  const LOGIN_ACCOUNTS = [
+    { id: "1088380546", password: "3533" },
+    { id: "111", password: "111" }
+  ];
   const screen = document.getElementById("loginScreen");
   const form = document.getElementById("loginForm");
   const idInput = document.getElementById("loginId");
@@ -1427,7 +1429,7 @@ if(mobileTreeList){
     e.preventDefault();
     const id = idInput.value.trim();
     const pass = passInput.value.trim();
-    if (id === LOGIN_ID && pass === LOGIN_PASSWORD) {
+    if (LOGIN_ACCOUNTS.some(account => account.id === id && account.password === pass)) {
       errorBox.classList.remove("show");
       screen.classList.add("hidden");
     } else {
