@@ -610,7 +610,7 @@ body.device-mobile #branchesView .branch-page{
 }
 
 
-/* ===== تعديلات واجهة الإصدار 1.1.8 ===== */
+/* ===== تعديلات واجهة الإصدار 1.1.9 ===== */
 .zoom-label,
 #zoomFit{
   display:none!important;
@@ -660,7 +660,7 @@ body.device-mobile .zoom-controls .zoom-btn{
 }
 
 
-/* ===== تعديلات الإصدار 1.1.8 ===== */
+/* ===== تعديلات الإصدار 1.1.9 ===== */
 .btn-gold{
   background:linear-gradient(135deg,#b8862e,#d8ad53)!important;
   color:#17120a!important;
@@ -795,6 +795,15 @@ body.device-mobile #fullWrap{
   overscroll-behavior:none!important;
 }
 
+
+/* تثبيت إحداثيات اللمس داخل الشجرة على الجوال */
+body.device-mobile #fullWrap{
+  touch-action:none!important;
+  overscroll-behavior:none!important;
+  -webkit-user-select:none!important;
+  user-select:none!important;
+}
+
 </style>
 </head>
 <body>
@@ -810,7 +819,7 @@ body.device-mobile #fullWrap{
   font-size:11px;
   font-weight:900;
   opacity:.9;
-">الإصدار 1.1.8</div>
+">الإصدار 1.1.9</div>
 
   <form class="login-box" id="loginForm" autocomplete="off">
     <div class="login-brand">
@@ -1343,66 +1352,7 @@ window.addEventListener("load",()=>setTimeout(()=>{
 window.addEventListener("resize",()=>applyZoom());
 
 
-/* السحب بالماوس/اللمس لتحريك الشجرة في جميع الاتجاهات */
-(() => {
-  const panArea = document.getElementById("fullWrap");
-  if (!panArea || panArea.dataset.panReady === "1") return;
-  panArea.dataset.panReady = "1";
 
-  let dragging = false;
-  let startX = 0;
-  let startY = 0;
-  let startScrollLeft = 0;
-  let startScrollTop = 0;
-  let pointerId = null;
-
-  panArea.addEventListener("pointerdown", (e) => {
-    if (e.button !== undefined && e.button !== 0) return;
-    if (e.target.closest("button, a, input, select, textarea")) return;
-
-    dragging = true;
-    pointerId = e.pointerId;
-    startX = e.clientX;
-    startY = e.clientY;
-    startScrollLeft = panArea.scrollLeft;
-    startScrollTop = panArea.scrollTop;
-
-    panArea.classList.add("is-panning");
-    try { panArea.setPointerCapture(pointerId); } catch (_) {}
-    e.preventDefault();
-  });
-
-  panArea.addEventListener("pointermove", (e) => {
-    if (!dragging || e.pointerId !== pointerId) return;
-
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-
-    panArea.scrollLeft = startScrollLeft - dx;
-    panArea.scrollTop = startScrollTop - dy;
-    e.preventDefault();
-  });
-
-  const stopPan = (e) => {
-    if (!dragging) return;
-    if (e && pointerId !== null && e.pointerId !== pointerId) return;
-
-    dragging = false;
-    panArea.classList.remove("is-panning");
-
-    if (pointerId !== null) {
-      try { panArea.releasePointerCapture(pointerId); } catch (_) {}
-    }
-    pointerId = null;
-  };
-
-  panArea.addEventListener("pointerup", stopPan);
-  panArea.addEventListener("pointercancel", stopPan);
-  panArea.addEventListener("lostpointercapture", stopPan);
-
-  // منع سحب العناصر الافتراضي داخل مساحة الشجرة.
-  panArea.addEventListener("dragstart", (e) => e.preventDefault());
-})();
 
 
 function updateDeviceMode(){
@@ -1545,30 +1495,22 @@ window.addEventListener("orientationchange",()=>setTimeout(configureRealMobileTr
   }
 
   function zoomAt(clientX, clientY, newZoom){
-    const oldZoom = treeZoom;
-    newZoom = clampZoom(newZoom);
-    if(Math.abs(newZoom-oldZoom) < 0.001) return;
+    const oldZoom=treeZoom;
+    newZoom=clampZoom(newZoom);
+    if(Math.abs(newZoom-oldZoom)<0.001) return;
 
-    const pc = document.getElementById("printContainer");
-    if(!pc) return;
+    const rect=wrap.getBoundingClientRect();
+    const viewportX=clientX-rect.left;
+    const viewportY=clientY-rect.top;
 
-    /* احسب النقطة التي لمسها المستخدم داخل الشجرة نفسها */
-    const before = pc.getBoundingClientRect();
-    const localX = (clientX - before.left) / oldZoom;
-    const localY = (clientY - before.top) / oldZoom;
+    const contentX=(wrap.scrollLeft+viewportX)/oldZoom;
+    const contentY=(wrap.scrollTop+viewportY)/oldZoom;
 
-    treeZoom = newZoom;
+    treeZoom=newZoom;
     applyZoom();
 
-    /* بعد التكبير حرّك نافذة العرض بحيث تبقى نفس النقطة تحت الإصبع */
-    requestAnimationFrame(()=>{
-      const after = pc.getBoundingClientRect();
-      const desiredX = after.left + (localX * newZoom);
-      const desiredY = after.top + (localY * newZoom);
-
-      wrap.scrollLeft += (desiredX - clientX);
-      wrap.scrollTop  += (desiredY - clientY);
-    });
+    wrap.scrollLeft=(contentX*newZoom)-viewportX;
+    wrap.scrollTop=(contentY*newZoom)-viewportY;
   }
 
   /* عجلة الماوس: Ctrl غير مطلوب */
@@ -1580,48 +1522,7 @@ window.addEventListener("orientationchange",()=>setTimeout(configureRealMobileTr
     }
   }, {passive:false});
 
-  /* Pinch Zoom للجوال */
-  let pinchCenterX = 0;
-  let pinchCenterY = 0;
-
-  wrap.addEventListener("touchstart", (e)=>{
-    if(e.touches.length === 2){
-      pinchStartDistance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      pinchStartZoom = treeZoom;
-      pinchCenterX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-      pinchCenterY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-      e.preventDefault();
-    }
-  }, {passive:false});
-
-  wrap.addEventListener("touchmove", (e)=>{
-    if(e.touches.length === 2 && pinchStartDistance > 0){
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      const ratio = dist / pinchStartDistance;
-
-      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-
-      /* التكبير يتم حول منتصف الإصبعين الحالي */
-      zoomAt(cx, cy, pinchStartZoom * ratio);
-
-      pinchCenterX = cx;
-      pinchCenterY = cy;
-      e.preventDefault();
-    }
-  }, {passive:false});
-
-  wrap.addEventListener("touchend", (e)=>{
-    if(e.touches.length < 2){
-      pinchStartDistance = 0;
-    }
-  });
+  
 
   /* زر ملاءمة يعمل بدقة أكبر على الجوال والكمبيوتر */
   const fitBtn = document.getElementById("zoomFit");
