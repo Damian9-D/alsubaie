@@ -482,6 +482,31 @@ body.device-mobile #fullWrap{
   color:#3b2b0d!important;
 }
 
+
+/* ===== تحسين التكبير والتحريك وعرض الفروع على الجوال ===== */
+#fullWrap{
+  touch-action:none!important;
+}
+
+/* صفحات الفروع على الجوال تظهر الصفحة كاملة */
+body.device-mobile #branchesView.active{
+  margin-top:130px!important;
+  width:100%!important;
+  padding:10px 8px 30px!important;
+  overflow-x:hidden!important;
+  align-items:center!important;
+}
+body.device-mobile #branchesView .branch-page{
+  transform-origin:top center!important;
+  margin:0 auto 16px!important;
+  flex-shrink:0!important;
+}
+body.device-mobile .branches-heading{
+  width:100%!important;
+  min-width:0!important;
+  padding:0 8px!important;
+}
+
 </style>
 </head>
 <body>
@@ -1091,6 +1116,128 @@ window.addEventListener("orientationchange",()=>setTimeout(configureRealMobileTr
   const observer = new MutationObserver(syncLogo);
   observer.observe(loginScreen, {attributes:true, attributeFilter:["class"]});
 })();
+
+
+/* ===== تكبير بعجلة الماوس + Pinch Zoom للجوال ===== */
+(() => {
+  const wrap = document.getElementById("fullWrap");
+  const stage = document.getElementById("canvasStage");
+  if(!wrap || !stage) return;
+
+  let pinchStartDistance = 0;
+  let pinchStartZoom = 1;
+
+  function clampZoom(v){
+    return Math.max(0.25, Math.min(1.6, v));
+  }
+
+  function zoomAt(clientX, clientY, newZoom){
+    const oldZoom = treeZoom;
+    newZoom = clampZoom(newZoom);
+    if(Math.abs(newZoom-oldZoom) < 0.001) return;
+
+    const rect = wrap.getBoundingClientRect();
+    const x = clientX - rect.left + wrap.scrollLeft;
+    const y = clientY - rect.top + wrap.scrollTop;
+
+    const contentX = x / oldZoom;
+    const contentY = y / oldZoom;
+
+    treeZoom = newZoom;
+    applyZoom();
+
+    wrap.scrollLeft = contentX * newZoom - (clientX - rect.left);
+    wrap.scrollTop  = contentY * newZoom - (clientY - rect.top);
+  }
+
+  /* عجلة الماوس: Ctrl غير مطلوب */
+  wrap.addEventListener("wheel", (e)=>{
+    if(!document.body.classList.contains("device-mobile")){
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.10 : 0.90;
+      zoomAt(e.clientX, e.clientY, treeZoom * factor);
+    }
+  }, {passive:false});
+
+  /* Pinch Zoom للجوال */
+  wrap.addEventListener("touchstart", (e)=>{
+    if(e.touches.length === 2){
+      pinchStartDistance = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      pinchStartZoom = treeZoom;
+      e.preventDefault();
+    }
+  }, {passive:false});
+
+  wrap.addEventListener("touchmove", (e)=>{
+    if(e.touches.length === 2 && pinchStartDistance > 0){
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const ratio = dist / pinchStartDistance;
+      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      zoomAt(cx, cy, pinchStartZoom * ratio);
+      e.preventDefault();
+    }
+  }, {passive:false});
+
+  wrap.addEventListener("touchend", (e)=>{
+    if(e.touches.length < 2) pinchStartDistance = 0;
+  });
+
+  /* زر ملاءمة يعمل بدقة أكبر على الجوال والكمبيوتر */
+  const fitBtn = document.getElementById("zoomFit");
+  if(fitBtn){
+    fitBtn.addEventListener("click", ()=>{
+      setTimeout(()=>{
+        const pc = document.getElementById("printContainer");
+        const availableW = Math.max(250, wrap.clientWidth - 24);
+        const availableH = Math.max(250, wrap.clientHeight - 24);
+        const scaleW = availableW / pc.scrollWidth;
+        const scaleH = availableH / pc.scrollHeight;
+        treeZoom = clampZoom(Math.min(scaleW, scaleH, 1));
+        applyZoom();
+        wrap.scrollLeft = Math.max(0,(wrap.scrollWidth-wrap.clientWidth)/2);
+        wrap.scrollTop = 0;
+      },20);
+    });
+  }
+})();
+
+/* ===== تصغير صفحات A4 تلقائياً على الجوال لعرض الصفحة كاملة ===== */
+function fitBranchPagesForMobile(){
+  const isMobile = document.body.classList.contains("device-mobile");
+  const pages = document.querySelectorAll("#branchesView .branch-page");
+
+  pages.forEach(page=>{
+    if(!isMobile){
+      page.style.transform = "";
+      page.style.marginBottom = "";
+      return;
+    }
+
+    const containerWidth = Math.max(280, window.innerWidth - 24);
+    const naturalWidth = page.offsetWidth;
+    const naturalHeight = page.offsetHeight;
+    const scale = Math.min(1, containerWidth / naturalWidth);
+
+    page.style.transform = `scale(${scale})`;
+    page.style.marginBottom = `${-(naturalHeight * (1-scale)) + 16}px`;
+  });
+}
+
+window.addEventListener("load", ()=>setTimeout(fitBranchPagesForMobile,300));
+window.addEventListener("resize", ()=>setTimeout(fitBranchPagesForMobile,100));
+window.addEventListener("orientationchange", ()=>setTimeout(fitBranchPagesForMobile,250));
+
+const branchTabFix = document.getElementById("branchTab");
+if(branchTabFix){
+  branchTabFix.addEventListener("click", ()=>setTimeout(fitBranchPagesForMobile,120));
+}
 
 </script>
 </body>
