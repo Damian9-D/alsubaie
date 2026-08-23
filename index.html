@@ -560,6 +560,18 @@ body.device-mobile .branches-heading{
 }
 @media print{#fixedVersionBadge{display:none!important}}
 
+
+/* إصلاح عنوان سلسلة نسب آل حمود في العرض والتصدير */
+.branch-title{
+  direction:rtl!important;
+  unicode-bidi:plaintext!important;
+  white-space:nowrap!important;
+  word-break:keep-all!important;
+  overflow-wrap:normal!important;
+  font-family:"IBM Plex Sans Arabic","Tajawal","Arial",sans-serif!important;
+  letter-spacing:0!important;
+}
+
 </style>
 </head>
 <body>
@@ -575,7 +587,7 @@ body.device-mobile .branches-heading{
   font-size:11px;
   font-weight:900;
   opacity:.9;
-">الإصدار 1.0.7</div>
+">الإصدار 1.0.8</div>
 
   <form class="login-box" id="loginForm" autocomplete="off">
     <div class="login-brand">
@@ -628,7 +640,7 @@ padding:8px 13px;
 font-size:12px;
 font-weight:900;
 box-shadow:0 6px 18px rgba(0,0,0,.16);
-">الإصدار 1.0.7</div>
+">الإصدار 1.0.8</div>
 <div class="toolbar no-print">
   <div class="switch">
     <button class="btn btn-tab active" id="fullTab">الشجرة الكاملة</button>
@@ -996,7 +1008,16 @@ document.getElementById("branchesPdfBtn").onclick=async()=>{
       page.style.margin="0";
       page.style.marginBottom="0";
 
-      await new Promise(r=>setTimeout(r,120));
+      const branchTitle = page.querySelector(".branch-title");
+      if(branchTitle){
+        branchTitle.setAttribute("dir","rtl");
+        branchTitle.style.direction="rtl";
+        branchTitle.style.unicodeBidi="plaintext";
+        branchTitle.style.whiteSpace="nowrap";
+        branchTitle.style.letterSpacing="0";
+      }
+
+      await new Promise(r=>setTimeout(r,180));
 
       const canvas=await html2canvas(page,{
         backgroundColor:"#fffdf8",
