@@ -171,7 +171,7 @@ body.device-mobile .desktop-full-tree{display:none!important}
 body.device-mobile .mobile-only{display:block!important}
 body.device-mobile{background:#f8fafc}
 body.device-mobile .toolbar{top:8px;left:8px;right:8px;transform:none;width:auto;max-width:none;display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:7px;border-radius:16px;white-space:normal;overflow:visible}
-body.device-mobile .toolbar .switch{width:100%;display:grid;grid-template-columns:1fr 1fr}
+body.device-mobile .toolbar .switch{width:100%;display:grid;grid-template-columns:repeat(3,1fr)}
 body.device-mobile .toolbar .switch .btn{width:100%}
 body.device-mobile .toolbar .sep,body.device-mobile .toolbar .zoom-controls{display:none!important}
 body.device-mobile .toolbar .btn{font-size:11px;padding:8px 10px}
@@ -610,7 +610,7 @@ body.device-mobile #branchesView .branch-page{
 }
 
 
-/* ===== تعديلات واجهة الإصدار 1.5.1 ===== */
+/* ===== تعديلات واجهة الإصدار 1.5.3 ===== */
 .zoom-label,
 #zoomFit{
   display:none!important;
@@ -660,7 +660,7 @@ body.device-mobile .zoom-controls .zoom-btn{
 }
 
 
-/* ===== تعديلات الإصدار 1.5.1 ===== */
+/* ===== تعديلات الإصدار 1.5.3 ===== */
 .btn-gold{
   background:linear-gradient(135deg,#b8862e,#d8ad53)!important;
   color:#17120a!important;
@@ -988,7 +988,7 @@ body.device-mobile #fullWrap{
 }
 
 
-/* الإصدار 1.5.1: فصل الضغط على البطاقة عن سحب الشجرة */
+/* الإصدار 1.5.3: فصل الضغط على البطاقة عن سحب الشجرة */
 .member-card[data-full-name]{
   touch-action:manipulation!important;
   -webkit-tap-highlight-color:rgba(201,155,61,.14);
@@ -1027,6 +1027,175 @@ body.device-mobile #fullWrap{
   vector-effect:non-scaling-stroke;
 }
 
+
+/* ===== صفحة نبذة 1.5.2 ===== */
+.about-view{
+  display:none;
+  margin-top:125px;
+  padding:0 20px 70px;
+  direction:rtl;
+}
+.about-view.active{display:block}
+.about-shell{
+  width:min(1180px,96vw);
+  margin:0 auto;
+}
+.about-hero{
+  background:linear-gradient(145deg,#171613,#24211c);
+  border:1px solid rgba(201,155,61,.38);
+  border-radius:30px;
+  padding:34px 30px;
+  color:#fffaf0;
+  box-shadow:0 18px 50px rgba(20,17,10,.12);
+  position:relative;
+  overflow:hidden;
+}
+.about-hero:after{
+  content:"";
+  position:absolute;
+  width:260px;height:260px;
+  left:-80px;top:-100px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(201,155,61,.16),transparent 68%);
+}
+.about-kicker{
+  color:#e4bd66;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:2px;
+  margin-bottom:8px;
+}
+.about-hero h2{
+  margin:0 0 12px;
+  font-size:34px;
+  font-weight:900;
+}
+.about-hero p{
+  margin:0;
+  color:#d9cfbd;
+  font-size:15px;
+  line-height:2;
+  max-width:900px;
+  font-weight:700;
+}
+.about-grid{
+  display:grid;
+  grid-template-columns:1.25fr .75fr;
+  gap:18px;
+  margin-top:18px;
+}
+.about-card{
+  background:#fffdf8;
+  border:1px solid #e5d8c1;
+  border-radius:24px;
+  padding:24px;
+  box-shadow:0 10px 30px rgba(54,42,20,.06);
+}
+.about-card h3{
+  margin:0 0 16px;
+  color:#211d16;
+  font-size:20px;
+  font-weight:900;
+}
+.lineage-strip{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:10px;
+  padding:18px;
+  background:#f5efe3;
+  border:1px solid #e7dbc5;
+  border-radius:18px;
+}
+.lineage-chip{
+  background:#fffdf8;
+  border:1px solid #d9c28e;
+  color:#3c3324;
+  border-radius:999px;
+  padding:10px 16px;
+  font-size:13px;
+  font-weight:900;
+}
+.lineage-arrow{
+  color:#b68832;
+  font-size:20px;
+  font-weight:900;
+}
+.about-list{
+  margin:0;
+  padding:0 20px 0 0;
+  color:#554a3b;
+  line-height:2.1;
+  font-size:14px;
+  font-weight:700;
+}
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.stat-box{
+  background:#f8f3e8;
+  border:1px solid #e5d8c1;
+  border-radius:18px;
+  padding:18px 12px;
+  text-align:center;
+}
+.stat-box strong{
+  display:block;
+  font-size:28px;
+  line-height:1;
+  color:#b8862e;
+  font-weight:900;
+  margin-bottom:8px;
+}
+.stat-box span{
+  color:#6f6353;
+  font-size:12px;
+  font-weight:900;
+}
+.note-box{
+  margin-top:14px;
+  padding:16px;
+  background:#f7f3e8;
+  border-right:4px solid #c99b3d;
+  border-radius:14px;
+  color:#6f6353;
+  font-size:12px;
+  line-height:1.9;
+  font-weight:700;
+}
+.about-footer{
+  margin-top:18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+  color:#8a7d69;
+  font-size:11px;
+  font-weight:800;
+}
+@media(max-width:768px){
+  .about-view{
+    margin-top:8px!important;
+    padding:8px 10px 132px!important;
+  }
+  .about-grid{grid-template-columns:1fr}
+  .about-hero{padding:24px 18px;border-radius:22px}
+  .about-hero h2{font-size:27px}
+  .about-hero p{font-size:13px}
+  .about-card{padding:18px;border-radius:18px}
+  .stats-grid{grid-template-columns:1fr 1fr 1fr}
+  .stat-box{padding:14px 8px}
+  .stat-box strong{font-size:22px}
+  .lineage-strip{justify-content:flex-start}
+}
+@media print{
+  .about-view{display:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -1042,7 +1211,7 @@ body.device-mobile #fullWrap{
   font-size:11px;
   font-weight:900;
   opacity:.9;
-">الإصدار 1.5.1</div>
+">الإصدار 1.5.3</div>
 
   <form class="login-box" id="loginForm" autocomplete="off">
     <div class="login-brand">
@@ -1095,6 +1264,7 @@ body.device-mobile #fullWrap{
   <div class="switch">
     <button class="btn btn-tab active" id="fullTab">الشجرة الكاملة</button>
     <button class="btn btn-tab" id="branchTab">عرض الفروع</button>
+    <button class="btn btn-tab" id="aboutBtn">نبذة</button>
   </div>
   <div class="sep"></div>
   <button class="btn btn-dark" id="jpgBtn">صورة عالية الدقة (JPG)</button>
@@ -1155,6 +1325,78 @@ body.device-mobile #fullWrap{
 </div>
 
 <div id="branchesView" class="branches-view"></div>
+
+
+<section id="aboutView" class="about-view">
+  <div class="about-shell">
+    <div class="about-hero">
+      <div class="about-kicker">نبذة عن الأصل والنسب</div>
+      <h2>الجد هاضل</h2>
+      <p>
+        ينتمي الجد <strong>هاضل</strong> إلى فخذ <strong>المدارية</strong> (لاد مدران)،
+        وهو من الفروع المعروفة في قبيلة سبيع. ويتسلسل انتماؤه القبلي من المدارية إلى الصعبة،
+        ثم بني عمر، وصولًا إلى قبيلة سبيع الغلباء.
+      </p>
+    </div>
+
+    <div class="about-grid">
+      <div class="about-card">
+        <h3>تسلسل الانتماء</h3>
+        <div class="lineage-strip">
+          <span class="lineage-chip">هاضل</span>
+          <span class="lineage-arrow">←</span>
+          <span class="lineage-chip">المدارية (لاد مدران)</span>
+          <span class="lineage-arrow">←</span>
+          <span class="lineage-chip">الصعبة</span>
+          <span class="lineage-arrow">←</span>
+          <span class="lineage-chip">بني عمر</span>
+          <span class="lineage-arrow">←</span>
+          <span class="lineage-chip">سبيع الغلباء</span>
+        </div>
+
+        <ul class="about-list">
+          <li>هاضل من فخذ المدارية.</li>
+          <li>المدارية فرع رئيسي من قبيلة الصعبة.</li>
+          <li>الصعبة من بني عمر.</li>
+          <li>بني عمر من قبيلة سبيع الغلباء.</li>
+        </ul>
+
+        <div class="note-box">
+          تعتمد المعلومات الواردة في هذه الصفحة على البيانات والمراجع المعتمدة لدى القائمين على الشجرة،
+          ويجري تحديثها عند توفر معلومات موثقة جديدة.
+        </div>
+      </div>
+
+      <div class="about-card">
+        <h3>إحصائيات الشجرة</h3>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <strong>145</strong>
+            <span>إجمالي الأشخاص</span>
+          </div>
+          <div class="stat-box">
+            <strong>125</strong>
+            <span>الأحياء</span>
+          </div>
+          <div class="stat-box">
+            <strong>20</strong>
+            <span>المتوفون</span>
+          </div>
+        </div>
+
+        <div class="note-box">
+          توثق الشجرة ذرية هاضل والفروع المتفرعة منه وفق البيانات المسجلة في النظام،
+          ويمكن الضغط على أي شخص في الشجرة لعرض مسار نسبه حتى هاضل.
+        </div>
+      </div>
+    </div>
+
+    <div class="about-footer">
+      <span>شجرة السباتين</span>
+      <span>عدد السجلات الحالي: 145</span>
+    </div>
+  </div>
+</section>
 
 <div class="export-overlay" id="overlay">
   <div class="export-card">
@@ -2217,5 +2459,37 @@ function zoomTreeAt(clientX,clientY,newZoom){
 </div>
 
 
+<script>
+/* ===== تبويب نبذة ===== */
+(() => {
+  const aboutBtn=document.getElementById("aboutBtn");
+  const aboutView=document.getElementById("aboutView");
+  const fullBtn=document.getElementById("fullTreeBtn") || document.getElementById("fullBtn");
+  const branchesBtn=document.getElementById("branchesBtn");
+  const fullView=document.getElementById("fullView");
+  const branchesView=document.getElementById("branchesView");
+
+  if(!aboutBtn || !aboutView) return;
+
+  function activateAbout(){
+    document.body.classList.remove("branch-mode");
+    if(fullView) fullView.classList.remove("active");
+    if(branchesView) branchesView.classList.remove("active");
+    aboutView.classList.add("active");
+
+    document.querySelectorAll(".btn-tab").forEach(b=>b.classList.remove("active"));
+    aboutBtn.classList.add("active");
+  }
+
+  aboutBtn.addEventListener("click",activateAbout);
+
+  [fullBtn,branchesBtn].filter(Boolean).forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      aboutView.classList.remove("active");
+      aboutBtn.classList.remove("active");
+    });
+  });
+})();
+</script>
 </body>
 </html>
