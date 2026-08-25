@@ -610,7 +610,7 @@ body.device-mobile #branchesView .branch-page{
 }
 
 
-/* ===== تعديلات واجهة الإصدار 1.4.9 ===== */
+/* ===== تعديلات واجهة الإصدار 1.5.1 ===== */
 .zoom-label,
 #zoomFit{
   display:none!important;
@@ -660,7 +660,7 @@ body.device-mobile .zoom-controls .zoom-btn{
 }
 
 
-/* ===== تعديلات الإصدار 1.4.9 ===== */
+/* ===== تعديلات الإصدار 1.5.1 ===== */
 .btn-gold{
   background:linear-gradient(135deg,#b8862e,#d8ad53)!important;
   color:#17120a!important;
@@ -988,13 +988,43 @@ body.device-mobile #fullWrap{
 }
 
 
-/* الإصدار 1.4.9: فصل الضغط على البطاقة عن سحب الشجرة */
+/* الإصدار 1.5.1: فصل الضغط على البطاقة عن سحب الشجرة */
 .member-card[data-full-name]{
   touch-action:manipulation!important;
   -webkit-tap-highlight-color:rgba(201,155,61,.14);
 }
 .member-card[data-full-name] *{
   pointer-events:none;
+}
+
+
+/* ===== إصلاح خطوط الشجرة 1.5.0 ===== */
+.node-card-wrap.has-children:after,
+.children-row.multi:before,
+.child-col > .down{
+  background:transparent!important;
+}
+#treeArea{
+  position:relative!important;
+}
+#treeConnectorSvg{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+  overflow:visible;
+}
+#treeArea > .tree-node{
+  position:relative;
+  z-index:2;
+}
+#treeConnectorSvg path{
+  fill:none;
+  stroke:#cbb98f;
+  stroke-width:4;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
 }
 
 </style>
@@ -1012,7 +1042,7 @@ body.device-mobile #fullWrap{
   font-size:11px;
   font-weight:900;
   opacity:.9;
-">الإصدار 1.4.9</div>
+">الإصدار 1.5.1</div>
 
   <form class="login-box" id="loginForm" autocomplete="off">
     <div class="login-brand">
@@ -1282,7 +1312,8 @@ const RAW_CSV_DATA = `الاسم,الفرع,الاسم الكامل,الجوال
 نايف,مسلط بن ذكار بن حمود بن سلطان بن هاضل,نايف بن مسلط بن ذكار بن حمود بن سلطان بن هاضل,,,,,,حي,ذكر
 سلطان,نايف بن ذكار بن حمود بن سلطان بن هاضل,سلطان بن نايف بن ذكار بن حمود بن سلطان بن هاضل,,,,,,حي,ذكر
 عبدالله,نايف بن ذكار بن حمود بن سلطان بن هاضل,عبدالله بن نايف بن ذكار بن حمود بن سلطان بن هاضل,,,,,,حي,ذكر
-مشعل,فراج بن ذكار بن حمود بن سلطان بن هاضل,مشعل بن فراج بن ذكار بن حمود بن سلطان بن هاضل,,,,,,حي,ذكر`;
+مشعل,فراج بن ذكار بن حمود بن سلطان بن هاضل,مشعل بن فراج بن ذكار بن حمود بن سلطان بن هاضل,,,,,,حي,ذكر
+بندر,فالح بن ذكار بن مفلح بن سلطان بن هاضل,بندر بن فالح بن ذكار بن مفلح بن سلطان بن هاضل,,,,,,حي,ذكر`;
 
 const orderMap = {
   "حمود":["سلطان","مسلط","ذكار","حجاب","نايف","محمد"],
@@ -1391,13 +1422,101 @@ function memberCard(m){
 function nodeHtml(node){
   const has=node.children.length>0;
   const kids=node.children.map(c=>`<div class="child-col"><div class="down"></div>${nodeHtml(c)}</div>`).join("");
-  return `<div class="tree-node">
+  return `<div class="tree-node" data-node-full-name="${esc(node.member.fullName)}">
     <div class="node-card-wrap ${has?"has-children":""}">${memberCard(node.member)}</div>
     ${has?`<div class="children-row ${node.children.length>1?"multi":""}" style="--count:${node.children.length}">${kids}</div>`:""}
   </div>`;
 }
 const root=buildTree("هاضل");
 document.getElementById("treeArea").innerHTML=nodeHtml(root);
+
+function drawTreeConnectors(){
+  const area=document.getElementById("treeArea");
+  if(!area) return;
+
+  let svg=document.getElementById("treeConnectorSvg");
+  if(!svg){
+    svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+    svg.id="treeConnectorSvg";
+    svg.setAttribute("aria-hidden","true");
+    area.prepend(svg);
+  }
+
+  const width=Math.max(area.scrollWidth,area.offsetWidth);
+  const height=Math.max(area.scrollHeight,area.offsetHeight);
+  svg.setAttribute("width",width);
+  svg.setAttribute("height",height);
+  svg.setAttribute("viewBox",`0 0 ${width} ${height}`);
+  svg.innerHTML="";
+
+  function posWithin(el,ancestor){
+    let x=0,y=0,node=el;
+    while(node && node!==ancestor){
+      x+=node.offsetLeft||0;
+      y+=node.offsetTop||0;
+      node=node.offsetParent;
+    }
+    return {x,y};
+  }
+
+  function addPath(d){
+    const p=document.createElementNS("http://www.w3.org/2000/svg","path");
+    p.setAttribute("d",d);
+    svg.appendChild(p);
+  }
+
+  area.querySelectorAll(".tree-node").forEach(node=>{
+    const parentWrap=node.querySelector(":scope > .node-card-wrap");
+    const parentCard=parentWrap?.querySelector(":scope > .member-card");
+    const row=node.querySelector(":scope > .children-row");
+    if(!parentCard || !row) return;
+
+    const childCols=[...row.querySelectorAll(":scope > .child-col")];
+    if(!childCols.length) return;
+
+    const pp=posWithin(parentCard,area);
+    const parentX=pp.x+parentCard.offsetWidth/2;
+    const parentY=pp.y+parentCard.offsetHeight;
+
+    const rp=posWithin(row,area);
+    const busY=rp.y;
+
+    const childPoints=childCols.map(col=>{
+      const childCard=col.querySelector(":scope > .tree-node > .node-card-wrap > .member-card");
+      if(!childCard) return null;
+      const cp=posWithin(childCard,area);
+      return {x:cp.x+childCard.offsetWidth/2,y:cp.y};
+    }).filter(Boolean);
+
+    if(!childPoints.length) return;
+
+    addPath(`M ${parentX} ${parentY} V ${busY}`);
+
+    if(childPoints.length===1){
+      addPath(`M ${parentX} ${busY} V ${childPoints[0].y}`);
+      return;
+    }
+
+    const xs=childPoints.map(p=>p.x);
+    addPath(`M ${Math.min(...xs)} ${busY} H ${Math.max(...xs)}`);
+
+    childPoints.forEach(p=>{
+      addPath(`M ${p.x} ${busY} V ${p.y}`);
+    });
+  });
+}
+
+function scheduleTreeConnectorDraw(){
+  requestAnimationFrame(()=>requestAnimationFrame(drawTreeConnectors));
+}
+
+scheduleTreeConnectorDraw();
+window.addEventListener("resize",scheduleTreeConnectorDraw);
+window.addEventListener("orientationchange",()=>setTimeout(scheduleTreeConnectorDraw,180));
+window.addEventListener("load",()=>setTimeout(scheduleTreeConnectorDraw,350));
+if(document.fonts && document.fonts.ready){
+  document.fonts.ready.then(scheduleTreeConnectorDraw).catch(()=>{});
+}
 
 function saDate(){return new Date().toLocaleDateString("ar-SA")}
 document.getElementById("today1").textContent=saDate();
