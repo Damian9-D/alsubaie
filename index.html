@@ -610,7 +610,7 @@ body.device-mobile #branchesView .branch-page{
 }
 
 
-/* ===== تعديلات واجهة الإصدار 1.5.8 ===== */
+/* ===== تعديلات واجهة الإصدار 1.6.2 ===== */
 .zoom-label,
 #zoomFit{
   display:none!important;
@@ -660,7 +660,7 @@ body.device-mobile .zoom-controls .zoom-btn{
 }
 
 
-/* ===== تعديلات الإصدار 1.5.8 ===== */
+/* ===== تعديلات الإصدار 1.6.2 ===== */
 .btn-gold{
   background:linear-gradient(135deg,#b8862e,#d8ad53)!important;
   color:#17120a!important;
@@ -988,7 +988,7 @@ body.device-mobile #fullWrap{
 }
 
 
-/* الإصدار 1.5.8: فصل الضغط على البطاقة عن سحب الشجرة */
+/* الإصدار 1.6.2: فصل الضغط على البطاقة عن سحب الشجرة */
 .member-card[data-full-name]{
   touch-action:manipulation!important;
   -webkit-tap-highlight-color:rgba(201,155,61,.14);
@@ -1196,6 +1196,15 @@ body.device-mobile #fullWrap{
   .about-view{display:none!important}
 }
 
+
+.member-title{
+  margin:5px 0 1px;
+  color:#b8862e;
+  font-size:10px;
+  font-weight:900;
+  line-height:1.35;
+}
+
 </style>
 </head>
 <body>
@@ -1211,7 +1220,7 @@ body.device-mobile #fullWrap{
   font-size:11px;
   font-weight:900;
   opacity:.9;
-">الإصدار 1.5.8</div>
+">الإصدار 1.6.2</div>
 
   <form class="login-box" id="loginForm" autocomplete="off">
     <div class="login-brand">
@@ -1333,10 +1342,7 @@ body.device-mobile #fullWrap{
       <div class="about-kicker">نبذة عن الأصل والنسب</div>
       <h2>الجد سلطان بن هاضل</h2>
       <p>
-        يبدأ توثيق شجرة السباتين من الجد <strong>سلطان بن هاضل</strong>، المعروف بلقب <strong>سبتان</strong>.
-        وهو ابن <strong>هاضل</strong> الذي ينتمي إلى فخذ <strong>المدارية</strong> (لاد مدران).
-        ويتسلسل الانتماء القبلي صعودًا من هاضل إلى المدارية، ثم الصعبة، ثم بني عمر،
-        وصولًا إلى قبيلة سبيع الغلباء.
+        توثيق شجرة السباتين من الجد <strong>سلطان بن هاضل</strong>، المعروف بلقب <strong>سبتان</strong>، وهو ابن <strong>هاضل</strong> من فخذ <strong>المشالحة</strong> من قبيلة <strong>المدارية</strong> من الصعبة من بني عمر من قبيلة سبيع الغلباء.
       </p>
     </div>
 
@@ -1684,6 +1690,7 @@ function memberCard(m){
     <div class="member-inner">
       <div class="person-icon ${alive?"alive-bg":"dead-bg"}">${alive?"✓":"✕"}</div>
       <div class="member-name">${esc(m.fullName)}</div>
+      ${m.fullName==="سلطان بن هاضل" ? '<div class="member-title">اللقب: سبتان</div>' : ''}
       <div class="small-sep"><i></i><b></b><i></i></div>
       <div class="gender-pill"><span>♂</span><span>${esc(m.gender)}</span></div>
     </div>
@@ -1791,7 +1798,7 @@ if(document.fonts && document.fonts.ready){
 function saDate(){return new Date().toLocaleDateString("ar-SA")}
 document.getElementById("today1").textContent=saDate();
 
-const fathers = unique.filter(m=>getChildren(m.fullName).length>0);
+const fathers = unique.filter(m=>normalize(m.fullName)!=="هاضل" && getChildren(m.fullName).length>0);
 
 function branchPage(father){
   const kids=getChildren(father.fullName);
@@ -1810,7 +1817,7 @@ function branchPage(father){
     <div class="branch-head">
       <div class="gold-line"></div>
       <div class="eyebrow"></div>
-      <h3>فرع ${esc(father.name)}</h3>
+      <h3>فرع ${father.fullName==="سلطان بن هاضل" ? 'سلطان "الملقب بسبتان"' : esc(father.name)}</h3>
       <div class="ancestor"><i></i><span>الجد الجامع للفرع: ${esc(father.fullName)}</span><i></i></div>
     </div>
     <div class="branch-content">
@@ -1823,7 +1830,7 @@ function branchPage(father){
     </div>
     <div class="branch-foot">
       <div><div class="doc">وثيقة نسب معتمدة - الإصدار الرابع</div></div>
-      <div class="foot-meta"><div><small>تاريخ الإصدار</small><strong>${saDate()}</strong></div><div class="vline"></div><div><small>رقم الصفحة</small><strong>فرع ${esc(father.name)}</strong></div></div>
+      <div class="foot-meta"><div><small>تاريخ الإصدار</small><strong>${saDate()}</strong></div><div class="vline"></div><div><small>رقم الصفحة</small><strong>فرع ${father.fullName==="سلطان بن هاضل" ? 'سلطان "الملقب بسبتان"' : esc(father.name)}</strong></div></div>
     </div>
   </section>`;
 }
